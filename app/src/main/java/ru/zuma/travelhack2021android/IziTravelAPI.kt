@@ -10,10 +10,13 @@ private val client = OkHttpClient()
 
 private const val PACKAGE_NAME = "IziTravel"
 
-class MapRoute(val points: List<GeoCoordinate>)
+class IziTravelRoute(
+    val title: String,
+    val points: List<GeoCoordinate>
+)
 
 fun queryObject(query: String,
-                onSuccess: (call: Call, routes: List<MapRoute>) -> Unit = { _, _ ->  },
+                onSuccess: (call: Call, routes: ArrayList<IziTravelRoute>) -> Unit = { _, _ ->  },
                 onFailure: (call: Call, e: IOException) -> Unit = { _, e -> Log.e(PACKAGE_NAME, "", e) }) {
 
     val request = Request.Builder()
@@ -30,21 +33,23 @@ fun queryObject(query: String,
                 if (!response.isSuccessful) Log.e(PACKAGE_NAME, "Unexpected code $response")
                 val jsonArray = JSONArray(response.body!!.string())
 
-                val routes = ArrayList<MapRoute>()
+                val routes = ArrayList<IziTravelRoute>()
                 for (i in 0 until jsonArray.length()) {
                     val jsonRoute = jsonArray.getJSONObject(i)
                     if (!jsonRoute.has("route")) continue
 
                     if (jsonRoute.getString("category") != "walk") continue
 
-                    val stringRoute = jsonArray.getJSONObject(i).getString("route")
-                    val points = stringRoute.split(";")
+                    val stringLatLonArray = jsonArray.getJSONObject(i).getString("route")
+                    val points = stringLatLonArray.split(";")
                         .map { it ->
                             val latLong =  it.split(",").map { it -> it.toDouble() }
                             GeoCoordinate(latLong[0], latLong[1])
                         }
 
-                    routes.add(MapRoute(points))
+                    val title = jsonRoute.getString("title")
+
+                    routes.add(IziTravelRoute(title, points))
                 }
 
                 onSuccess(call, routes)

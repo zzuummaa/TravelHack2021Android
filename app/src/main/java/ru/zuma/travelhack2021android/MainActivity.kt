@@ -2,6 +2,9 @@ package ru.zuma.travelhack2021android
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.fragment.app.FragmentActivity
 import com.here.android.mpa.common.GeoCoordinate
 import com.here.android.mpa.common.MapSettings.setDiskCacheRootPath
@@ -13,6 +16,9 @@ import java.io.File
 
 
 class MainActivity : FragmentActivity() {
+
+    private var routeTitles = ArrayList<String>()
+    private var routes = ArrayList<IziTravelRoute>()
 
     // map embedded in the map fragment
     private lateinit var map: Map
@@ -27,6 +33,28 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun initialize() {
+
+        val routesAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, routeTitles)
+        routesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerRoutes.adapter = routesAdapter
+
+        spinnerRoutes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                Log.d(javaClass.simpleName, "Choose route ${position}")
+                map.removeAllMapObjects()
+                displayRoute(map, routes[position])
+            }
+
+        }
 
         // Search for the map fragment to finish setup by calling init().
         mapFragment =
@@ -44,7 +72,7 @@ class MainActivity : FragmentActivity() {
                 map = mapFragment.getMap()!!
                 // Set the map center to the Vancouver region (no animation)
                 map.setCenter(
-                    GeoCoordinate(49.196261, -123.004773, 0.0),
+                    GeoCoordinate(55.7522200, 37.6155600, 0.0),
                     Map.Animation.NONE
                 )
                 // Set the zoom level to the average between min and max
@@ -59,11 +87,19 @@ class MainActivity : FragmentActivity() {
             queryObject(
                 etObjectQuery.text.toString(),
                 { _, routes ->
-                    // TODO
                     Log.d(javaClass.simpleName, "Success object query with ${routes.size} routes")
-                    map.removeAllMapObjects()
-                    for (route in routes) {
-                        displayRoute(map, route)
+
+                    runOnUiThread {
+                        this.routes = routes
+                        routeTitles.clear()
+                        routeTitles.addAll(routes.map { it.title })
+                        routesAdapter.notifyDataSetChanged()
+
+                        if (routes.isEmpty()) {
+                            map.removeAllMapObjects()
+                        } else {
+                            spinnerRoutes.setSelection(0)
+                        }
                     }
                 }
             )

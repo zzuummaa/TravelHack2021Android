@@ -10,12 +10,14 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:orientation="horizontal">
 
         <EditText
             android:id="@+id/etObjectQuery"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Москва"
             android:maxLines="1"
             android:layout_weight="3"/>
 
@@ -27,6 +29,12 @@
             android:layout_weight="1"/>
 
     </LinearLayout>
+
+    <Spinner
+        android:id="@+id/spinnerRoutes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"/>
 
 
     <!-- Map Fragment embedded with the map object -->
