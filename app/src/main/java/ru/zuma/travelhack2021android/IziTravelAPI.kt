@@ -15,9 +15,9 @@ class IziTravelRoute(
     val points: List<GeoCoordinate>
 )
 
-fun queryObject(query: String,
-                onSuccess: (call: Call, routes: ArrayList<IziTravelRoute>) -> Unit = { _, _ ->  },
-                onFailure: (call: Call, e: IOException) -> Unit = { _, e -> Log.e(PACKAGE_NAME, "", e) }) {
+fun queryObjects(query: String,
+                 onSuccess: (call: Call, routes: ArrayList<IziTravelRoute>) -> Unit = { _, _ ->  },
+                 onFailure: (call: Call, e: IOException) -> Unit = { _, e -> Log.e(PACKAGE_NAME, "", e) }) {
 
     val request = Request.Builder()
         .url("https://api.izi.travel/mtg/objects/search?languages=ru,en&includes=all&api_key=7c6c2db9-d237-4411-aa0e-f89125312494&query=${query}")

@@ -51,7 +51,7 @@ class MainActivity : FragmentActivity() {
             ) {
                 Log.d(javaClass.simpleName, "Choose route ${position}")
                 map.removeAllMapObjects()
-                displayRoute(map, routes[position])
+                calculateDisplayRoute(map, routes[position])
             }
 
         }
@@ -84,7 +84,7 @@ class MainActivity : FragmentActivity() {
 
         btnFind.setOnClickListener {
             Log.d(javaClass.simpleName, "On submit")
-            queryObject(
+            queryObjects(
                 etObjectQuery.text.toString(),
                 { _, routes ->
                     Log.d(javaClass.simpleName, "Success object query with ${routes.size} routes")
