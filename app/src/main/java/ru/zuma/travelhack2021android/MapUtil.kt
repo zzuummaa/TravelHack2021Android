@@ -1,6 +1,7 @@
 package ru.zuma.travelhack2021android
 
 import android.graphics.Color
+import com.here.android.mpa.common.GeoCoordinate
 import com.here.android.mpa.common.GeoPolyline
 import com.here.android.mpa.mapping.*
 import com.here.android.mpa.mapping.Map
@@ -23,13 +24,21 @@ fun displayRoute(map: Map, route: IziTravelRoute) {
 
 }
 
-fun calculateDisplayRoute(map: Map, route: IziTravelRoute) {
+fun calculateDisplayRoute(map: Map, route: IziTravelRoute, selfCoordinate: GeoCoordinate? = null) {
+    val points = if (selfCoordinate != null) {
+        val a = ArrayList(route.points)
+        a.add(0, selfCoordinate)
+        a
+    } else {
+        route.points
+    }
+
     val routeOptions = RouteOptions()
     routeOptions.transportMode = RouteOptions.TransportMode.PEDESTRIAN
     routeOptions.routeType = RouteOptions.Type.FASTEST
 
     val coreRouter = CoreRouter()
-    coreRouter.calculateRoute(route.points, routeOptions, object : CoreRouter.Listener {
+    coreRouter.calculateRoute(points, routeOptions, object : CoreRouter.Listener {
         override fun onCalculateRouteFinished(
             list: List<RouteResult>,
             routingError: RoutingError
@@ -37,8 +46,8 @@ fun calculateDisplayRoute(map: Map, route: IziTravelRoute) {
             if (routingError == RoutingError.NONE) {
                 val resultRoute = list[0].route
 
-                for (i in 0 until route.points.size) {
-                    val marker = MapLabeledMarker(route.points[i])
+                for (i in 0 until points.size) {
+                    val marker = MapLabeledMarker(points[i])
                     marker.setLabelText("ang", (i+1).toString())
                     map.addMapObject(marker)
                 }
