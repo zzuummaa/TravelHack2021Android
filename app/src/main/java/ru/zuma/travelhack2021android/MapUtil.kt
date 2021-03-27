@@ -46,7 +46,8 @@ fun calculateDisplayRoute(map: Map, route: IziTravelRoute, selfCoordinate: GeoCo
             if (routingError == RoutingError.NONE) {
                 val resultRoute = list[0].route
 
-                for (i in 0 until points.size) {
+                val startIdx = if (selfCoordinate == null) 0 else 1
+                for (i in startIdx until points.size) {
                     val marker = MapLabeledMarker(points[i])
                     marker.setLabelText("ang", (i+1).toString())
                     map.addMapObject(marker)

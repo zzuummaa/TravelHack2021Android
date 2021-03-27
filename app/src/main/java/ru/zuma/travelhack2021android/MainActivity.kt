@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentActivity
 import com.here.android.mpa.common.GeoCoordinate
 import com.here.android.mpa.common.MapSettings.setDiskCacheRootPath
 import com.here.android.mpa.common.OnEngineInitListener
+import com.here.android.mpa.common.PositioningManager
 import com.here.android.mpa.mapping.AndroidXMapFragment
 import com.here.android.mpa.mapping.Map
 import kotlinx.android.synthetic.main.activity_main.*
@@ -169,7 +170,14 @@ class MainActivity : FragmentActivity() {
                     // Set the zoom level to the average between min and max
                     setZoomLevel((getMaxZoomLevel() + getMinZoomLevel()) / 2)
                 }
+                mapFragment.positionIndicator?.apply {
+                    isVisible = true
+                    isAccuracyIndicatorVisible = true
+//                    accuracyIndicatorColor = Color.argb(255, 0, 0, 255)
+                }
 
+                val positioningManager = PositioningManager.getInstance()
+                positioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK)
             } else {
                 Log.e(LOG_NAME, "Cannot initialize Map Fragment")
             }
