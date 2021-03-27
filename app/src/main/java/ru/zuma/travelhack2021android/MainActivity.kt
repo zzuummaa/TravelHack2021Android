@@ -14,8 +14,8 @@ import com.here.android.mpa.mapping.Map
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-
 class MainActivity : FragmentActivity() {
+    private val LOG_NAME = javaClass.simpleName
 
     private var routeTitles = ArrayList<String>()
     private var routes = ArrayList<IziTravelRoute>()
@@ -49,9 +49,22 @@ class MainActivity : FragmentActivity() {
                 position: Int,
                 id: Long
             ) {
-                Log.d(javaClass.simpleName, "Choose route ${position}")
+                Log.d(LOG_NAME, "Choose route ${position}")
                 map.removeAllMapObjects()
                 calculateDisplayRoute(map, routes[position])
+
+                val queryPointFullCallback: QuerySuccessCallback<IziTravelPointFull> = { _, responsePointFull ->
+                    Log.d(LOG_NAME, "$responsePointFull")
+                }
+
+                val queryObjectFullCallback: QuerySuccessCallback<ArrayList<IziTravelPoint>> =  { _, responsePoints ->
+                    Log.d(LOG_NAME, "Points query response with ${responsePoints.size} points")
+                    for (point in responsePoints) {
+                        queryPointFull(point.uuid, queryPointFullCallback)
+                    }
+                }
+
+                queryObjectFull(routes[position].uuid, queryObjectFullCallback)
             }
 
         }
@@ -78,16 +91,15 @@ class MainActivity : FragmentActivity() {
                 // Set the zoom level to the average between min and max
                 map.setZoomLevel((map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2)
             } else {
-                Log.e(javaClass.simpleName, "Cannot initialize Map Fragment")
+                Log.e(LOG_NAME, "Cannot initialize Map Fragment")
             }
         })
 
         btnFind.setOnClickListener {
-            Log.d(javaClass.simpleName, "On submit")
             queryObjects(
                 etObjectQuery.text.toString(),
                 { _, routes ->
-                    Log.d(javaClass.simpleName, "Success object query with ${routes.size} routes")
+                    Log.d(LOG_NAME, "Objects query response with ${routes.size} routes")
 
                     runOnUiThread {
                         this.routes = routes
