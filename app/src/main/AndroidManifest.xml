@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ru.zuma.travelhack2021android">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:hardwareAccelerated="true">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <meta-data android:name="com.here.android.maps.appid" android:value="vF17vBK4aIDpIsqgLmBq"/>
+        <meta-data android:name="com.here.android.maps.apptoken" android:value="5BLVqAzCBTbSAxHJsv7syg"/>
+        <meta-data android:name="com.here.android.maps.license.key" android:value="QbUyEPgTU4xfUnwQs0sdHJucus9Fi0cve3q5WlekbDUM3t5sz04qOw+meLQ6LBwGW5t7R7olynvykTKI4ZfstVraVoNrJLFuhXlUjHGr0btyk+LNKin8FYE026Sd5Mmn39qNMaqj7nJwqufu+b6kWbL/vjL6Ik6gYSV866yldwVXICUQR2SvLD84iHt2SgbztX2diX2vWvts+B7WN7ld25Yh9Wj/pwaINSXWBocWMpgB2SiUl1bL5+Z0Ox1oToXH+zmEpP47/tz+SYl4Jd0WlvsRC6NrBID1oYyjyMGqNDF0LtHX7OqMZjHjJo69XrtMmhCVI7U1RhsbWx/esnW1xJeDrdcuzx2Irfq6blXXHvwuDNvOl0lo1+CQdC8b5d0e3ZS+QIdHZCIuGDEUwWRu9sJ7cYjYlzhk0THYvYdrf0bWa0WLgUYtkGbpvt45z51xjFK90uf8uxowTPcKuQirGIksk618RjE93W69xOpoeFVqMSOLrsq3oOx90VjHzZQMigiXicPBeDGolsO28DiOO4bOjcwphaj3tLtImYAVrREO1yzHaN+IOem1NurhXZlt0YJ3td0g3Q/uHgbL5iC1G98S9XVDFCiqXhRxmEZqfQni087RisQbiFF/HFmLobpF5Fi9G2TsV1g1SY4XuOBhEKq+0xdgmV5kqWArtD4JOO0="/>
+    </application>
+</manifest>
