@@ -23,8 +23,8 @@ class IziTravelPoint(
 
 class IziTravelPointFull(
     val uuid: String,
-    val contentProviderUUID: String,
-    val audioUUID: String
+    val contentProviderUUID: String? = null,
+    val audioUUID: String? = null
 ) {
     override fun toString(): String {
         return "IziTravelPointFull(uuid='$uuid', contentProviderUUID='$contentProviderUUID', audioUUID='$audioUUID')"
@@ -149,4 +149,9 @@ fun queryPointFull(pointUUID: String,
             }
         }
     })
+}
+
+fun iziTravelAudioURL(contentProviderUUID: String?, audioUUID: String?): String? {
+    if (contentProviderUUID == null || audioUUID == null) return null
+    return "https://media.izi.travel/$contentProviderUUID/$audioUUID.m4a?api_key=7c6c2db9-d237-4411-aa0e-f89125312494"
 }

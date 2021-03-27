@@ -1,5 +1,8 @@
 package ru.zuma.travelhack2021android
 
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,11 +17,15 @@ import com.here.android.mpa.mapping.Map
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
+
 class MainActivity : FragmentActivity() {
     private val LOG_NAME = javaClass.simpleName
 
     private var routeTitles = ArrayList<String>()
     private var routes = ArrayList<IziTravelRoute>()
+    private var pointsFull = ArrayList<IziTravelPointFull>()
+
+    private var mediaPlayer: MediaPlayer? = null
 
     // map embedded in the map fragment
     private lateinit var map: Map
@@ -53,20 +60,45 @@ class MainActivity : FragmentActivity() {
                 map.removeAllMapObjects()
                 calculateDisplayRoute(map, routes[position])
 
-                val queryPointFullCallback: QuerySuccessCallback<IziTravelPointFull> = { _, responsePointFull ->
-                    Log.d(LOG_NAME, "$responsePointFull")
-                }
-
                 val queryObjectFullCallback: QuerySuccessCallback<ArrayList<IziTravelPoint>> =  { _, responsePoints ->
                     Log.d(LOG_NAME, "Points query response with ${responsePoints.size} points")
-                    for (point in responsePoints) {
-                        queryPointFull(point.uuid, queryPointFullCallback)
+                    runOnUiThread {
+                        pointsFull = responsePoints.map { IziTravelPointFull(it.uuid) } as ArrayList
+                    }
+                    for (i in 0 until responsePoints.size) {
+                        queryPointFull(
+                            responsePoints[i].uuid, { _, pointFull ->
+                            Log.d(LOG_NAME, "$pointFull")
+                            runOnUiThread {
+                                pointsFull[i] = pointFull
+                            }
+                        })
                     }
                 }
 
                 queryObjectFull(routes[position].uuid, queryObjectFullCallback)
             }
 
+        }
+
+        btnPlayAudio.setOnClickListener {
+            if (pointsFull.isEmpty()) return@setOnClickListener
+            val point = pointsFull[0]
+            val url = iziTravelAudioURL(point.contentProviderUUID, point.audioUUID)
+            Log.d(LOG_NAME, "Request audio $url")
+
+            releaseMP()
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(url)
+                setAudioStreamType(AudioManager.STREAM_MUSIC)
+                setOnPreparedListener { start() }
+                prepareAsync()
+            }
+
+        }
+
+        btnStopAudio.setOnClickListener {
+            releaseMP()
         }
 
         // Search for the map fragment to finish setup by calling init().
@@ -116,5 +148,21 @@ class MainActivity : FragmentActivity() {
                 }
             )
         }
+    }
+
+    private fun releaseMP() {
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer!!.release()
+                mediaPlayer = null
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        releaseMP()
     }
 }
