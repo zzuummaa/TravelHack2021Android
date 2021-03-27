@@ -3,10 +3,12 @@ package ru.zuma.travelhack2021android
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.FragmentActivity
-import com.here.android.mpa.mapping.AndroidXMapFragment
-import com.here.android.mpa.common.OnEngineInitListener
-import com.here.android.mpa.mapping.Map
 import com.here.android.mpa.common.GeoCoordinate
+import com.here.android.mpa.common.MapSettings.setDiskCacheRootPath
+import com.here.android.mpa.common.OnEngineInitListener
+import com.here.android.mpa.mapping.AndroidXMapFragment
+import com.here.android.mpa.mapping.Map
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
 
@@ -32,7 +34,7 @@ class MainActivity : FragmentActivity() {
 
         // Set up disk map cache path for this application
         // Use path under your application folder for storing the disk cache
-        com.here.android.mpa.common.MapSettings.setDiskCacheRootPath(
+        setDiskCacheRootPath(
             getFilesDir().getPath() + File.separator + ".here-maps"
         )
 
@@ -51,5 +53,20 @@ class MainActivity : FragmentActivity() {
                 Log.e(javaClass.simpleName, "Cannot initialize Map Fragment")
             }
         })
+
+        btnFind.setOnClickListener {
+            Log.d(javaClass.simpleName, "On submit")
+            queryObject(
+                etObjectQuery.text.toString(),
+                { _, routes ->
+                    // TODO
+                    Log.d(javaClass.simpleName, "Success object query with ${routes.size} routes")
+                    map.removeAllMapObjects()
+                    for (route in routes) {
+                        displayRoute(map, route)
+                    }
+                }
+            )
+        }
     }
 }
