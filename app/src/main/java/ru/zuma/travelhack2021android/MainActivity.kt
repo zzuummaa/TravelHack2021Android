@@ -17,6 +17,7 @@ import com.here.android.mpa.common.GeoCoordinate
 import com.here.android.mpa.common.MapSettings.setDiskCacheRootPath
 import com.here.android.mpa.common.OnEngineInitListener
 import com.here.android.mpa.common.PositioningManager
+import com.here.android.mpa.guidance.NavigationManager
 import com.here.android.mpa.mapping.AndroidXMapFragment
 import com.here.android.mpa.mapping.Map
 import kotlinx.android.synthetic.main.activity_main.*
@@ -45,17 +46,6 @@ class MainActivity : FragmentActivity() {
 
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
-            Log.d(LOG_NAME, "Location changed: ${location.latitude},${location.longitude}")
-            currentCoordinate = GeoCoordinate(location.latitude, location.longitude)
-            if (spinnerRoutes.selectedItemPosition == -1) return
-            map?.apply {
-                this.removeAllMapObjects()
-                calculateDisplayRoute(this, routes[spinnerRoutes.selectedItemPosition], currentCoordinate)
-            }
-
-            findPointInBounds(routes[spinnerRoutes.selectedItemPosition].points, currentCoordinate!!, audioTriggerDistance)?.apply {
-                audioService.playMedia(pointsFull[spinnerRoutes.selectedItemPosition])
-            }
 
         }
 
@@ -89,6 +79,22 @@ class MainActivity : FragmentActivity() {
 
     private fun initialize() {
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        onNavigationPositionChanged = { geoPosition ->
+            val location = geoPosition.coordinate
+            Log.d(LOG_NAME, "Location changed: ${location.latitude},${location.longitude}")
+            currentCoordinate = location
+            if (spinnerRoutes.selectedItemPosition != -1) {
+//              map?.apply {
+//                  this.removeAllMapObjects()
+//                  calculateDisplayRoute(this, routes[spinnerRoutes.selectedItemPosition], currentCoordinate)
+//             }
+
+                findPointInBounds(routes[spinnerRoutes.selectedItemPosition].points, currentCoordinate!!, audioTriggerDistance)?.apply {
+                    audioService.playMedia(pointsFull[spinnerRoutes.selectedItemPosition])
+                }
+            }
+        }
 
         val routesAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, routeTitles)
         routesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -178,6 +184,8 @@ class MainActivity : FragmentActivity() {
 
                 val positioningManager = PositioningManager.getInstance()
                 positioningManager.start(PositioningManager.LocationMethod.GPS_NETWORK)
+
+                initMapUtil(this, mapFragment, NavigationManager.getInstance())
             } else {
                 Log.e(LOG_NAME, "Cannot initialize Map Fragment")
             }
