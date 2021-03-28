@@ -47,9 +47,9 @@ fun displayRoute(map: Map, route: IziTravelRoute) {
 
 fun calculateDisplayRoute(map: Map, route: IziTravelRoute, selfCoordinate: GeoCoordinate? = null) {
     val points = if (selfCoordinate != null) {
-        val a = ArrayList(route.points)
-        a.add(0, selfCoordinate)
-        a
+        ArrayList(route.points).apply {
+            add(0, selfCoordinate)
+        }
     } else {
         route.points
     }
@@ -69,8 +69,8 @@ fun calculateDisplayRoute(map: Map, route: IziTravelRoute, selfCoordinate: GeoCo
 
                 val startIdx = if (selfCoordinate == null) 0 else 1
                 for (i in startIdx until points.size) {
-                    val marker = MapLabeledMarker(points[i])
-                    marker.setLabelText("ang", (i + 1 - startIdx).toString())
+                    val marker = MapMarker(points[i])
+//                    marker.setLabelText("ang", (i + 1 - startIdx).toString())
                     map.addMapObject(marker)
                 }
 
@@ -202,5 +202,6 @@ private val navigationManagerEventListener: NavigationManagerEventListener =
 
 fun findPointInBounds(points: List<GeoCoordinate>, center: GeoCoordinate, radius: Float) : Int? {
     val boundingBox = GeoBoundingBox(center, radius * 2, radius * 2)
-    return points.indexOfFirst { boundingBox.contains(it) }
+    val idx = points.indexOfFirst { boundingBox.contains(it) }
+    return if (idx == -1) null else idx
 }

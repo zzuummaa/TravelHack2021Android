@@ -25,7 +25,7 @@ import java.io.File
 
 
 class MainActivity : FragmentActivity() {
-    private var audioTriggerDistance: Float = 0.050f
+    private var audioTriggerDistance: Float = 50f
     private val LOG_NAME = javaClass.simpleName
     private val TAG_CODE_PERMISSION_LOCATION = 1
 
@@ -84,6 +84,7 @@ class MainActivity : FragmentActivity() {
             val location = geoPosition.coordinate
             Log.d(LOG_NAME, "Location changed: ${location.latitude},${location.longitude}")
             currentCoordinate = location
+//            map?.addMapObject(MapMarker(location))
             if (spinnerRoutes.selectedItemPosition != -1) {
 //              map?.apply {
 //                  this.removeAllMapObjects()
@@ -91,7 +92,7 @@ class MainActivity : FragmentActivity() {
 //             }
 
                 findPointInBounds(routes[spinnerRoutes.selectedItemPosition].points, currentCoordinate!!, audioTriggerDistance)?.apply {
-                    audioService.playMedia(pointsFull[spinnerRoutes.selectedItemPosition])
+                    audioService.playMedia(pointsFull[this])
                 }
             }
         }
@@ -112,6 +113,23 @@ class MainActivity : FragmentActivity() {
                 id: Long
             ) {
                 Log.d(LOG_NAME, "Choose route ${position}")
+
+                val queryString = etObjectQuery.text.toString()
+
+                if (queryString.trim().toLowerCase() == "лужники") {
+                    pointsFull = arrayListOf(
+                        IziTravelPointFull("1e170d24-48b5-4cd7-8d80-e25290986400", null, null),
+                        IziTravelPointFull("1e170d24-48b5-4cd7-8d80-e25290986400", "3f41a4ab-3836-4daa-b5cb-b20a8f8235b5", "aa421b55-0d4c-4d2e-8d06-c8a0337f0716"),
+                        IziTravelPointFull("1e170d24-48b5-4cd7-8d80-e25290986400", "d319471a-1108-4d97-a938-b82ed956f138", "357cc390-81f2-46ea-b3b7-5a0800c1e69e")
+                    )
+
+                    map?.apply {
+                        removeAllMapObjects()
+                        calculateDisplayRoute(this, routes[position], currentCoordinate)
+                    }
+                    return
+                }
+
                 runOnUiThread {
                     map?.apply {
                         removeAllMapObjects()
@@ -149,9 +167,10 @@ class MainActivity : FragmentActivity() {
             audioService.stopMedia()
         }
 
+        etTriggerDistance.setText(audioTriggerDistance.toString())
         etTriggerDistance.doOnTextChanged { text, start, before, count ->
             Log.d(LOG_NAME, "Triger distance change to $text m.")
-            audioTriggerDistance = text.toString().toInt() / 1000f
+            audioTriggerDistance = text.toString().toFloat()
         }
 
         // Search for the map fragment to finish setup by calling init().
@@ -192,27 +211,43 @@ class MainActivity : FragmentActivity() {
         }
 
         btnFind.setOnClickListener {
+            val queryString = etObjectQuery.text.toString()
+
+            if (queryString.trim().toLowerCase() == "лужники") {
+                this.routes = arrayListOf(
+                    IziTravelRoute(
+                        "",
+                        "Тест",
+                        arrayListOf(
+                            GeoCoordinate(55.7184747, 37.5590348),
+                            GeoCoordinate(55.7180113, 37.559704),
+                            GeoCoordinate(55.7175799, 37.5613035)
+                        )
+                    )
+                )
+
+                Log.d(LOG_NAME, "Objects query hardcoded data with ${routes.size} routes")
+
+                routeTitles.clear()
+                routeTitles.addAll(routes.map { it.title })
+                routesAdapter.notifyDataSetChanged()
+
+                if (routes.isEmpty()) {
+                    map?.removeAllMapObjects()
+                } else {
+                    spinnerRoutes.setSelection(0)
+                }
+
+                return@setOnClickListener
+            }
+
             queryObjects(
                 etObjectQuery.text.toString(),
                 { _, routes ->
                     Log.d(LOG_NAME, "Objects query response with ${routes.size} routes")
 
                     runOnUiThread {
-                        if (routes.isNotEmpty()) {
-                            this.routes = arrayListOf(
-                                IziTravelRoute(
-                                    routes[0].uuid,
-                                    routes[0].title,
-                                    arrayListOf(
-                                        GeoCoordinate(55.7180113, 37.559704),
-                                        GeoCoordinate(55.7171799, 37.5613035)
-                                    )
-                                )
-                            )
-                        } else {
-                            this.routes = routes
-                        }
-//                        this.routes = routes
+                        this.routes = routes
 
                         routeTitles.clear()
                         routeTitles.addAll(routes.map { it.title })
@@ -233,15 +268,15 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (!setupLocationListener()) {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                TAG_CODE_PERMISSION_LOCATION
-            )
-        }
+//        if (!setupLocationListener()) {
+//            ActivityCompat.requestPermissions(
+//                this, arrayOf(
+//                    Manifest.permission.ACCESS_FINE_LOCATION,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//                ),
+//                TAG_CODE_PERMISSION_LOCATION
+//            )
+//        }
     }
 
     override fun onPause() {

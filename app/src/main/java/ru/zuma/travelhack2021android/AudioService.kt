@@ -9,11 +9,14 @@ class AudioService {
     private var lastPlayedPoint: IziTravelPointFull? = null
 
     fun playMedia(point: IziTravelPointFull) {
+        val url = iziTravelAudioURL(point.contentProviderUUID, point.audioUUID)
+        Log.d(javaClass.simpleName, "Request audio $url")
+
         if (lastPlayedPoint == point) return
         lastPlayedPoint = point
 
-        val url = iziTravelAudioURL(point.contentProviderUUID, point.audioUUID)
-        Log.d(javaClass.simpleName, "Request audio $url")
+
+        if (url == null) return
 
         stopMedia()
         mediaPlayer = MediaPlayer().apply {
