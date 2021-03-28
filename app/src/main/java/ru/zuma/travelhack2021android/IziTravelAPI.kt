@@ -29,6 +29,19 @@ class IziTravelPointFull(
     override fun toString(): String {
         return "IziTravelPointFull(uuid='$uuid', contentProviderUUID='$contentProviderUUID', audioUUID='$audioUUID')"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as IziTravelPointFull
+
+        if (uuid != other.uuid) return false
+        if (contentProviderUUID != other.contentProviderUUID) return false
+        if (audioUUID != other.audioUUID) return false
+
+        return true
+    }
 }
 
 fun queryObjects(query: String,
@@ -140,6 +153,10 @@ fun queryPointFull(pointUUID: String,
                 val contentProviderUUID = jsonObject.getJSONObject("content_provider").getString("uuid")
 
                 val jsonContent = jsonObject.getJSONArray("content").getJSONObject(0)
+                if (!jsonContent.has("audio")) {
+                    // TODO log.e
+                    return
+                }
                 val jsonAudioArray = jsonContent.getJSONArray("audio")
 
                 if (jsonAudioArray.length() == 0) Log.e(PACKAGE_NAME, "Unexpected code $response")

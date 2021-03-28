@@ -5,14 +5,13 @@ import android.content.Context
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.media.AudioManager
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.core.app.ActivityCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.FragmentActivity
 import com.here.android.mpa.common.GeoCoordinate
 import com.here.android.mpa.common.MapSettings.setDiskCacheRootPath
@@ -25,17 +24,18 @@ import java.io.File
 
 
 class MainActivity : FragmentActivity() {
+    private var audioTriggerDistance: Float = 0.050f
     private val LOG_NAME = javaClass.simpleName
     private val TAG_CODE_PERMISSION_LOCATION = 1
 
     private lateinit var locationManager: LocationManager
 
-    private var routeTitles = ArrayList<String>()
+    private var audioService = AudioService()
+
+    private var routeTitles = arrayListOf<String>()
     private var routes = ArrayList<IziTravelRoute>()
     private var currentCoordinate: GeoCoordinate? = null
-    private var pointsFull = ArrayList<IziTravelPointFull>()
-
-    private var mediaPlayer: MediaPlayer? = null
+    private var pointsFull = arrayListOf<IziTravelPointFull>()
 
     // map embedded in the map fragment
     private var map: Map? = null
@@ -47,10 +47,16 @@ class MainActivity : FragmentActivity() {
         override fun onLocationChanged(location: Location) {
             Log.d(LOG_NAME, "Location changed: ${location.latitude},${location.longitude}")
             currentCoordinate = GeoCoordinate(location.latitude, location.longitude)
+            if (spinnerRoutes.selectedItemPosition == -1) return
             map?.apply {
-                if (spinnerRoutes.selectedItemPosition == -1) return@apply
+                this.removeAllMapObjects()
                 calculateDisplayRoute(this, routes[spinnerRoutes.selectedItemPosition], currentCoordinate)
             }
+
+            findPointInBounds(routes[spinnerRoutes.selectedItemPosition].points, currentCoordinate!!, audioTriggerDistance)?.apply {
+                audioService.playMedia(pointsFull[spinnerRoutes.selectedItemPosition])
+            }
+
         }
 
         override fun onProviderDisabled(provider: String) { }
@@ -130,22 +136,16 @@ class MainActivity : FragmentActivity() {
 
         btnPlayAudio.setOnClickListener {
             if (pointsFull.isEmpty()) return@setOnClickListener
-            val point = pointsFull[0]
-            val url = iziTravelAudioURL(point.contentProviderUUID, point.audioUUID)
-            Log.d(LOG_NAME, "Request audio $url")
-
-            releaseMP()
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(url)
-                setAudioStreamType(AudioManager.STREAM_MUSIC)
-                setOnPreparedListener { start() }
-                prepareAsync()
-            }
-
+            audioService.playMedia(pointsFull[0])
         }
 
         btnStopAudio.setOnClickListener {
-            releaseMP()
+            audioService.stopMedia()
+        }
+
+        etTriggerDistance.doOnTextChanged { text, start, before, count ->
+            Log.d(LOG_NAME, "Triger distance change to $text m.")
+            audioTriggerDistance = text.toString().toInt() / 1000f
         }
 
         // Search for the map fragment to finish setup by calling init().
@@ -190,7 +190,22 @@ class MainActivity : FragmentActivity() {
                     Log.d(LOG_NAME, "Objects query response with ${routes.size} routes")
 
                     runOnUiThread {
-                        this.routes = routes
+                        if (routes.isNotEmpty()) {
+                            this.routes = arrayListOf(
+                                IziTravelRoute(
+                                    routes[0].uuid,
+                                    routes[0].title,
+                                    arrayListOf(
+                                        GeoCoordinate(55.7180113, 37.559704),
+                                        GeoCoordinate(55.7171799, 37.5613035)
+                                    )
+                                )
+                            )
+                        } else {
+                            this.routes = routes
+                        }
+//                        this.routes = routes
+
                         routeTitles.clear()
                         routeTitles.addAll(routes.map { it.title })
                         routesAdapter.notifyDataSetChanged()
@@ -228,7 +243,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        releaseMP()
+        audioService.stopMedia()
     }
 
     override fun onRequestPermissionsResult(
@@ -266,14 +281,4 @@ class MainActivity : FragmentActivity() {
         return false
     }
 
-    private fun releaseMP() {
-        if (mediaPlayer != null) {
-            try {
-                mediaPlayer!!.release()
-                mediaPlayer = null
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
 }

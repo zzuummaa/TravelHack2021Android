@@ -1,6 +1,7 @@
 package ru.zuma.travelhack2021android
 
 import android.graphics.Color
+import com.here.android.mpa.common.GeoBoundingBox
 import com.here.android.mpa.common.GeoCoordinate
 import com.here.android.mpa.common.GeoPolyline
 import com.here.android.mpa.mapping.*
@@ -49,7 +50,7 @@ fun calculateDisplayRoute(map: Map, route: IziTravelRoute, selfCoordinate: GeoCo
                 val startIdx = if (selfCoordinate == null) 0 else 1
                 for (i in startIdx until points.size) {
                     val marker = MapLabeledMarker(points[i])
-                    marker.setLabelText("ang", (i+1).toString())
+                    marker.setLabelText("ang", (i + 1 - startIdx).toString())
                     map.addMapObject(marker)
                 }
 
@@ -59,4 +60,9 @@ fun calculateDisplayRoute(map: Map, route: IziTravelRoute, selfCoordinate: GeoCo
 
         override fun onProgress(i: Int) {}
     })
+}
+
+fun findPointInBounds(points: List<GeoCoordinate>, center: GeoCoordinate, radius: Float) : Int? {
+    val boundingBox = GeoBoundingBox(center, radius * 2, radius * 2)
+    return points.indexOfFirst { boundingBox.contains(it) }
 }
